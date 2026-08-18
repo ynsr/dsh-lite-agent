@@ -44,10 +44,10 @@ Quick one-liner installer (copy-paste on the command line)
 
 ```bash
 # Install preset only:
-curl -fsSL https://github.com/ynsr/dsh-lite-agent/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ynsr/dsh-lite-agent/refs/heads/main/install.sh | bash
 
 # Install preset + companion profile (opt-in):
-curl -fsSL https://github.com/ynsr/dsh-lite-agent/install.sh | bash -s -- --profile
+curl -fsSL https://raw.githubusercontent.com/ynsr/dsh-lite-agent/refs/heads/main/install.sh | bash -s -- --profile
 ```
 
 ### 1. Install the agent preset
