@@ -1,0 +1,19 @@
+# Node / deps
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Installer bundles
+profiles/lite/pnpm-lock.yaml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# DSH user data — never commit
+.dsh/
+*.local.cordis.yml

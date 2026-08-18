@@ -1,0 +1,97 @@
+# The `lite` agent preset: a minimal coding agent for small tasks.
+#
+# Cloned from `standard`, trimmed to the essential read/edit/run loop:
+#   - no subagent / delegation / workflow / ralph tools
+#   - no goal tool, no plan mode, no web search
+#   - skills limited to the PROJECT's own skill directories only
+#     (customSkillDirs under the current workspace); the global user
+#     (`~/.dsh/skills`) and bundled skill roots are excluded here, and a
+#     deployment that also wants superpowers/*-cli suppressed should run this
+#     preset inside the companion "lite" profile, which omits those bundles.
+#   - a bare, self-contained persona: this one section IS the system prompt.
+#
+# This is an AGENT-PLANE composition: the roster mounts it once under a
+# standing scope and every session naming it joins by scope parentage. Rows
+# that publish a service must sit inside a group with an `isolate` realm;
+# everything here only registers tool/skill/prompt sections and provides
+# nothing, so no realm is required.
+
+# ── identity ────────────────────────────────────────────────────────────────
+#
+# `complete: true` and `includeRuntimeContext: false` make this the ENTIRE
+# system prompt: no auto-appended identity/web/tool guidance. Keep it short.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      You are a concise coding assistant running small tasks with the {{model}} model.
+      Your working directory is {{cwd}}.
+      Make the minimal change that solves the task, verify what you changed, and stop.
+      Do not add unrequested features, refactors, or abstractions.
+    complete: true
+    includeRuntimeContext: false
+
+# Loads the deployment's `AGENTS.md` / agent instructions so the project's own
+# rules still apply to small changes.
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── shell ───────────────────────────────────────────────────────────────────
+#
+# Executors (`bash-sandbox`/`pwsh-sandbox`) and the task registry live on the
+# host plane; these rows only register the model-facing tools. `tool-jobs` is
+# kept so `run_in_background` still works for commands.
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+
+- id: tool-jobs
+  name: '@deepseek-ai/dsh-tool-jobs'
+
+# ── filesystem ──────────────────────────────────────────────────────────────
+#
+# Register into the host `tools` registry and provide nothing, so no realm.
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+# ── skills (project-only) ──────────────────────────────────────────────────
+#
+# Register into this preset's layer of the skill registry, so no realm. The
+# filesystem provider below scans ONLY the current project's skill directories
+# (`.dsh/skills`, `.agents/skills`, `.claude/skills`); default user and bundled
+# roots are excluded. `tool-skill` gives the model the catalog and loader, so
+# any globally-registered skills still present in the host layer remain
+# visible unless the hosting profile omits their providers (see the lite
+# profile).
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    includeDefaultRoots: false
+    customSkillDirs:
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.dsh/skills'
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.agents/skills'
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.claude/skills'
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+
+# ── remaining minimal model-facing rows ─────────────────────────────────────
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true

@@ -1,0 +1,30 @@
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+#
+# This "lite" deployment-wide intent:
+#   - Global skill providers are hidden for EVERY preset that boots under this
+#     profile. The superpowers / *-cli skills are NOT contributed here because
+#     this profile's bundle list simply omits `superpowers-dsh`, and the host
+#     `skill-filesystem` row below no longer scans the user (`~/.dsh/skills`,
+#     `~/.agents/skills`) or bundled roots — only the current project's own
+#     skill directories are discovered.
+#   - The default agent preset is `lite`, the trimmed companion to this profile.
+
+# Point the HOST skill filesystem provider at project-only skill roots so
+# user-global and bundled skills do not reach any preset mounted under this
+# profile. (The lite preset configures its own layer the same way.)
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    includeDefaultRoots: false
+    customSkillDirs:
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.dsh/skills'
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.agents/skills'
+      - !!js (process.env.DSH_CWD ?? process.cwd()) + '/.claude/skills'
+
+# Default every session in this profile to the lite agent preset.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: lite

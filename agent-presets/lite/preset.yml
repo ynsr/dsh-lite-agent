@@ -1,0 +1,5 @@
+name: Lite Agent
+description: >-
+  A minimal coding agent for small tasks and minimal code changes: bash,
+  filesystem, project-only skills, ask-user and todo. No subagent, delegation,
+  workflow, goal, plan-mode, or web tools. A bare self-contained system prompt.
