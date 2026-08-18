@@ -38,11 +38,24 @@ if [[ "${1:-}" == "--profile" ]]; then
   # 3. Shell function (add to rc file)
   add_shell_function() {
     local rc_file
-    local func_def='dsh-lite() {
-  if command -v dsh &> /dev/null; then
-    dsh --profile lite "$@"
+    local func_def='port_free() {
+  local port="$1"
+  if command -v lsof &> /dev/null; then
+    ! lsof -iTCP:"$port" -sTCP:LISTEN -P -n &> /dev/null
   else
-    npx @deepseek-ai/dsh --profile lite "$@"
+    ! (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null
+  fi
+}
+
+dsh-lite() {
+  local port=3080
+  while ! port_free "$port"; do
+    ((port++))
+  done
+  if command -v dsh &> /dev/null; then
+    dsh --profile lite --port "$port" "$@"
+  else
+    npx @deepseek-ai/dsh --profile lite --port "$port" "$@"
   fi
 }'
 
