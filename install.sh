@@ -2,7 +2,23 @@
 # Install the dsh-lite-agent preset (and optionally the companion profile).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="ynsr/dsh-lite-agent"
+BRANCH="main"
+
+# Resolve the repo root. When run from a local checkout (`./install.sh`) the
+# files live next to this script; when piped in via `curl | bash` there is no
+# local copy, so fetch the tarball from GitHub into a temp dir instead.
+# (`BASH_SOURCE` is unset/empty under `bash -s`, hence the default.)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+if [[ -n "$SCRIPT_DIR" && -d "$SCRIPT_DIR/agent-presets/lite" ]]; then
+  ROOT="$SCRIPT_DIR"
+else
+  TMP_DIR="$(mktemp -d)"
+  trap 'rm -rf "$TMP_DIR"' EXIT
+  curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$TMP_DIR"
+  ROOT="$TMP_DIR/${REPO##*/}-$BRANCH"
+fi
+
 DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
 
 # 1. Agent preset
